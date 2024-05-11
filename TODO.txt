@@ -1,0 +1,2 @@
+Onset detection -> pitch detection
+For chord detection -> how to do polyphony?
