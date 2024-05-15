@@ -9,18 +9,26 @@ import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import be.tarsos.dsp.AudioDispatcher;
+import be.tarsos.dsp.AudioEvent;
 import be.tarsos.dsp.AudioProcessor;
 import be.tarsos.dsp.io.android.AudioDispatcherFactory;
+import be.tarsos.dsp.onsets.ComplexOnsetDetector;
+import be.tarsos.dsp.onsets.OnsetHandler;
+import be.tarsos.dsp.onsets.PercussionOnsetDetector;
+import be.tarsos.dsp.onsets.PrintOnsetHandler;
 import be.tarsos.dsp.pitch.PitchDetectionHandler;
+import be.tarsos.dsp.pitch.PitchDetectionResult;
 import be.tarsos.dsp.pitch.PitchProcessor;
 
 public class MainActivity extends AppCompatActivity {
+
+    private TextView nText;
+    private TextView fText;
+    private static long lastExecutionTime = 0;
+    private static final long TIME_ELAPSED = 125;
+    boolean ConditionOnset = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,33 +36,55 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
+        nText = (TextView)findViewById(R.id.noteText);
+        fText = (TextView)findViewById(R.id.freqText);
         getPermissions();
 
-        //NOTE: if sampling freq is 4kHz, program returns frequencies 1 octave higher than expected - why?
-        AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(8000, 1024, 512);
-        PitchDetectionHandler pitchDetectionHandler = (pitchDetectionResult, audioEvent) -> {
-            final float pitchInHz = pitchDetectionResult.getPitch();
-            runOnUiThread(() -> {
-                TextView nText = (TextView) findViewById(R.id.noteText);
-                TextView fText = (TextView) findViewById(R.id.freqText);
-                if(pitchDetectionResult.isPitched()){
-                    FindNote fNote = new FindNote();
-                    nText.setText((String)fNote.findNote(pitchInHz));
-                    fText.setText(String.valueOf(pitchInHz));
+        /* AudioDispatcher reads sound input from the microphone and and sends it to an AudioProcessor object*/
+        AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050,2048,0);
 
-                }
-                else{
-                    nText.setText("Waiting for input");
-                    fText.setText("");
-                }
-            });
+        PercussionOnsetDetector onsetDetector = new PercussionOnsetDetector(22050,2048,
+                new OnsetHandler() {
+                    @Override
+                    public void handleOnset(double time, double salience) {
+                        long currentTime = System.currentTimeMillis();
+                        if(currentTime-lastExecutionTime>=TIME_ELAPSED)
+                        {
+                            ConditionOnset = true;
+                            lastExecutionTime = currentTime;
+                        }
+                    }
+                },60, 1);
+
+        PitchDetectionHandler pitchDetectionHandler = new PitchDetectionHandler() {
+            @Override
+            public void handlePitch(PitchDetectionResult pitchDetectionResult, AudioEvent event){
+
+                final float pitchInHz = pitchDetectionResult.getPitch();
+                if(ConditionOnset && (pitchInHz > 82.41f))
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            changeState(pitchInHz);
+                        }
+                    });
+                ConditionOnset = false;
+            }
         };
 
-        AudioProcessor audioProcessor = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN,
-                8000, 1024, pitchDetectionHandler);
-        dispatcher.addAudioProcessor(audioProcessor);
+        AudioProcessor pitchProcessor = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.MPM,
+                22050, 2048, pitchDetectionHandler);
+        dispatcher.addAudioProcessor(pitchProcessor);
+        dispatcher.addAudioProcessor(onsetDetector);
         new Thread(dispatcher,"Audio Dispatcher").start();
+    }
 
+    private void changeState(float f){
+        FindNote fNote = new FindNote();
+        nText.setText(fNote.findNote(f));
+        fText.setText(String.valueOf(f));
+        System.out.println(fNote.findNote(f));
+        ConditionOnset = false;
     }
 
     private void getPermissions(){
