@@ -1,2 +1,8 @@
 Onset detection -> pitch detection
 For chord detection -> how to do polyphony?
+
+Should do my own processing algorithm.
+1) Connect onset and pitch detection
+2) Time onset detection at a believable rate
+2) Implement a wage system: Check Amplitude Characteristics for different frequencies A(f,t) ->
+    -> thresholds for different frequencies should be changed based on this.

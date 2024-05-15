@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView nText;
     private TextView fText;
     private static long lastExecutionTime = 0;
-    private static final long TIME_ELAPSED = 100;
+    private static final long TIME_ELAPSED = 125;
     boolean ConditionOnset = false;
 
     @Override
@@ -41,9 +41,9 @@ public class MainActivity extends AppCompatActivity {
         getPermissions();
 
         /* AudioDispatcher reads sound input from the microphone and and sends it to an AudioProcessor object*/
-        AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(44100,7600,3800);
+        AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050,2048,0);
 
-        PercussionOnsetDetector onsetDetector = new PercussionOnsetDetector(44100,7600,
+        PercussionOnsetDetector onsetDetector = new PercussionOnsetDetector(22050,2048,
                 new OnsetHandler() {
                     @Override
                     public void handleOnset(double time, double salience) {
@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
         };
 
         AudioProcessor pitchProcessor = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.MPM,
-                44100, 7600, pitchDetectionHandler);
+                22050, 2048, pitchDetectionHandler);
         dispatcher.addAudioProcessor(pitchProcessor);
         dispatcher.addAudioProcessor(onsetDetector);
         new Thread(dispatcher,"Audio Dispatcher").start();
