@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:title="Create tab"
+        android:id="@+id/create"
+        android:icon="@drawable/add_icon"
+        />
+    <item android:title="Saved tabs"
+        android:id="@+id/saved"
+        android:icon="@drawable/files_icon"
+        />
+</menu>

@@ -9,88 +9,44 @@ import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
-import be.tarsos.dsp.AudioDispatcher;
-import be.tarsos.dsp.AudioEvent;
-import be.tarsos.dsp.AudioProcessor;
-import be.tarsos.dsp.io.android.AudioDispatcherFactory;
-import be.tarsos.dsp.onsets.ComplexOnsetDetector;
-import be.tarsos.dsp.onsets.OnsetHandler;
-import be.tarsos.dsp.onsets.PercussionOnsetDetector;
-import be.tarsos.dsp.onsets.PrintOnsetHandler;
-import be.tarsos.dsp.pitch.PitchDetectionHandler;
-import be.tarsos.dsp.pitch.PitchDetectionResult;
-import be.tarsos.dsp.pitch.PitchProcessor;
+import com.example.tabapp.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
-
-    private TextView nText;
-    private TextView fText;
-    private static long lastExecutionTime = 0;
-    private static final long TIME_ELAPSED = 125;
-    boolean ConditionOnset = false;
+    ActivityMainBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
-
-        nText = (TextView)findViewById(R.id.noteText);
-        fText = (TextView)findViewById(R.id.freqText);
+        setContentView(binding.getRoot());
         getPermissions();
 
-        /* AudioDispatcher reads sound input from the microphone and and sends it to an AudioProcessor object*/
-        AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050,2048,0);
+        binding.BottomNavigationMenu.setOnItemSelectedListener(item -> {
+            if(item.getItemId() == R.id.create)
+                replaceFragment(new CreateTabFragment());
+            else if(item.getItemId() == R.id.saved)
+                replaceFragment(new FilesFragment());
+            return true;
+        });
 
-        PercussionOnsetDetector onsetDetector = new PercussionOnsetDetector(22050,2048,
-                new OnsetHandler() {
-                    @Override
-                    public void handleOnset(double time, double salience) {
-                        long currentTime = System.currentTimeMillis();
-                        if(currentTime-lastExecutionTime>=TIME_ELAPSED)
-                        {
-                            ConditionOnset = true;
-                            lastExecutionTime = currentTime;
-                        }
-                    }
-                },60, 1);
-
-        PitchDetectionHandler pitchDetectionHandler = new PitchDetectionHandler() {
-            @Override
-            public void handlePitch(PitchDetectionResult pitchDetectionResult, AudioEvent event){
-
-                final float pitchInHz = pitchDetectionResult.getPitch();
-                if(ConditionOnset && (pitchInHz > 82.41f))
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            changeState(pitchInHz);
-                        }
-                    });
-                ConditionOnset = false;
-            }
-        };
-
-        AudioProcessor pitchProcessor = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.MPM,
-                22050, 2048, pitchDetectionHandler);
-        dispatcher.addAudioProcessor(pitchProcessor);
-        dispatcher.addAudioProcessor(onsetDetector);
-        new Thread(dispatcher,"Audio Dispatcher").start();
-    }
-
-    private void changeState(float f){
-        FindNote fNote = new FindNote();
-        nText.setText(fNote.findNote(f));
-        fText.setText(String.valueOf(f));
-        System.out.println(fNote.findNote(f));
-        ConditionOnset = false;
     }
 
     private void getPermissions(){
         if(ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO},123);
         }
+    }
+
+    private void replaceFragment(Fragment fragment){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.frame_layout,fragment);
+        fragmentTransaction.commit();
     }
 
 }
