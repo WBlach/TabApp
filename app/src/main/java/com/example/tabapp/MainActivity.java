@@ -34,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
+        if(savedInstanceState == null)
+            replaceFragment(new CreateTabFragment());
     }
 
     private void getPermissions(){
@@ -45,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private void replaceFragment(Fragment fragment){
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.frame_layout,fragment);
+        fragmentTransaction.replace(R.id.fragment,fragment);
         fragmentTransaction.commit();
     }
 

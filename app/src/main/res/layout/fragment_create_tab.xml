@@ -10,9 +10,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
+        android:layout_marginTop="100dp"
         android:textSize="50dp"
-        android:text="E2"
+        android:text="Start recording"
         />
 
     <TextView
@@ -23,8 +23,16 @@
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:textSize="20dp"
-        android:text="485 Hz"
         />
+
+    <Button
+        android:id="@+id/recordButton"
+        android:layout_width="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="100dp"
+        android:layout_height="wrap_content"
+        android:text="Start Recording" />
 
 
 </RelativeLayout>
