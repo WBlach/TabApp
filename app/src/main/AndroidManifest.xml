@@ -4,6 +4,9 @@
 
     <!-- Permission to record audio -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Permissions to write to and read from external storage -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"

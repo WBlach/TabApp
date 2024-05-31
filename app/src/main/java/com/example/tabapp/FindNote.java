@@ -56,25 +56,20 @@ public class FindNote {
         freqs.put(987.77f, "B5");
     }
 
-    /**
-     * The function takes input frequency in Hertz and returns matching musical sound name
-     * @param inputFrequency - frequency of the detected sound
-     * @return type:float - the closest matching musical note name
-     */
-    String findNote(float inputFrequency){
-        if(inputFrequency < 82.41f)
-            return "E2";
-        else if (inputFrequency > 987.77f)
-            return "B5";
+    public String[] getNote(float inputFreq){
+        if(inputFreq > 987.77f)
+            return new String[]{"987.77", "B5"};
+        else if (inputFreq < 82.41f)
+            return new String[]{"82.41", "E2"};
         else{
-            float freqLower = freqs.floorKey(inputFrequency).floatValue();
-            float freqHigher = freqs.ceilingKey(inputFrequency).floatValue();
-            if(Math.abs(inputFrequency- freqLower) > Math.abs(inputFrequency- freqHigher))
-                return freqs.get(freqHigher);
-            else return freqs.get(freqLower);
+            float freqLower = freqs.floorKey(inputFreq);
+            float freqHigher = freqs.ceilingKey(inputFreq);
+            if(Math.abs(inputFreq- freqLower) < Math.abs(inputFreq- freqHigher))
+                return new String[] {String.valueOf(freqLower), freqs.get(freqLower)};
+            else return new String[] {String.valueOf(freqHigher), freqs.get(freqHigher)};
         }
-
     }
 }
+
 
 
